@@ -38,7 +38,7 @@ skimr::skim(concrete)
 We might be interested in the relationship between the final compressive strength of the mixture and the amount of cement (in kilograms per cubic meter). This is visualised below:
 
 ```{r, warning=FALSE, message=FALSE}
- concrete %>% ggplot(aes(cement, strength))+geom_point() +geom_smooth(method ="lm") +theme_minimal()+xlab("Cement (kg/cubic meter)")+ ylab("Strength")+ ggtitle("Relationship Between Concrete Amount and Final Compressive Strangth ")
+ concrete %>% ggplot(aes(cement, strength))+geom_point() +geom_smooth(method ="lm") +theme_minimal()+xlab("Cement (kg/cubic meter)")+ ylab("Strength")+ ggtitle("Relationship Between Concrete Amount and Final Compressive Strength ")
 ```
 
 ## Preparation
@@ -94,7 +94,7 @@ concrete_model1 <- neuralnet(strength ~ cement + slag + ash +water + superplasti
 Lets visualise the visualize the network topology on the resulting model object:
 
 ```{r}
-plot(concrete_model1)
+plot(concrete_model1,rep="best")
 ```
 
 In this simple model, each of the eight features has one input node, followed by a single hidden node and a single output note, predicting concrete strength. The respective weights for each connection are also includes, so are the *bias terms*, which indicated by the nodes labeled with the number 1. The bias terms are numeric constants, they allow the value at the indicated nodes to be shifted either upward or downward, you can think of them as the intercept in a linear equation.
@@ -135,7 +135,7 @@ concrete_model2 <- neuralnet(strength ~ cement+slag+ash+water+superplastic+coars
 If we plot the network, we can see the substantial increase in the number of connections, but, has this improved performance?
 
 ```{r}
-plot(concrete_model2)
+plot(concrete_model2, rep="best")
 ```
 
 For this model the reported error has been reduced to 1.63 from 5.08 in the previous model. In addition, the number of training steps has also increased, to 86,849, from 4,822. The more complex the network the more iterations necessary to find optimal weights. We can once again apply similar steps as with the previous model, to find the correlation between the actual and predicted values:
@@ -164,7 +164,7 @@ concrete_model3 <- neuralnet(strength ~ cement+slag+ash+water+superplastic+coars
 Similar to before, the network can be visualised:
 
 ```{r}
-plot(concrete_model3)
+plot(concrete_model3,rep="best")
 ```
 
 As with previous models, we can compute the correlation between the predicted and actual concrete strength:
@@ -214,3 +214,11 @@ The correlation remains the same:
 ```{r}
 cor(strengths$pred_new, strengths$actual)
 ```
+
+# Session Info
+```{r}
+sessionInfo()
+```
+
+
+
