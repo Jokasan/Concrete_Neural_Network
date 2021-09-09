@@ -6,7 +6,7 @@ output:
     code_folding: show
     self_contained: true
     thumbnails: false
-    lightbox: true
+    lightbox: false
 pkgdown:
   as_is: true
 ---
@@ -20,38 +20,22 @@ library(tidyverse)
 
 > This analysis was developed using chapter 7 of [Machine Learning with R by Brett Lantz](https://www.amazon.co.uk/Machine-Learning-techniques-predictive-modeling/dp/1788295862/ref=asc_df_1788295862/?tag=googshopuk-21&linkCode=df0&hvadid=310913487979&hvpos=&hvnetw=g&hvrand=9701403430837084778&hvpone=&hvptwo=&hvqmt=&hvdev=c&hvdvcmdl=&hvlocint=&hvlocphy=9045907&hvtargid=pla-691968032079&psc=1&th=1&psc=1) and data from the [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/index.php)
 
-In engineering it is vital to have appropriate estimates of building
-material performance. This enables the development of safety guidelines
-when using these materials in construction.
+In engineering it is vital to have appropriate estimates of building material performance. This enables the development of safety guidelines when using these materials in construction.
 
-Estimating concrete's strength is a particularly interesting challenge.
-Concrete is used in almost every construction project, however its
-performance varies due to variations in ingredients interacting in
-complex ways. Hence, the difficulty when predicting the strength of the
-final product, developing a model to reliably predict concrete strength
-could yield safer construction practices.
+Estimating concrete's strength is a particularly interesting challenge. Concrete is used in almost every construction project, however its performance varies due to variations in ingredients interacting in complex ways. Hence, the difficulty when predicting the strength of the final product, developing a model to reliably predict concrete strength could yield safer construction practices.
 
 # Exploration and preparation of data
 
 ## Exploration
 
-The data used for this analysis is on compressive strength of concrete,
-which was donated to [UCI Machine Learning
-Repository](http://archive.ics.uci.edu/ml) by [I-Cheng
-Yeh.](https://www.sciencedirect.com/science/article/pii/S0008884698001653)
-The dataset contains 1,030 examples of concrete, and 8 variables
-describing the components of the mixture. It is thought that these
-features are related to the final compressive strength. We can get a
-quick look at these variables, using the **skim** function:
+The data used for this analysis is on compressive strength of concrete, which was donated to [UCI Machine Learning Repository](http://archive.ics.uci.edu/ml) by [I-Cheng Yeh.](https://www.sciencedirect.com/science/article/pii/S0008884698001653) The dataset contains 1,030 examples of concrete, and 8 variables describing the components of the mixture. It is thought that these features are related to the final compressive strength. We can get a quick look at these variables, using the **skim** function:
 
 ```{r}
 concrete <- read.csv("concrete.csv")
 skimr::skim(concrete)
 ```
 
-We might be interested in the relationship between the final compressive
-strength of the mixture and the amount of cement (in kilograms per cubic
-meter). This is visualised below:
+We might be interested in the relationship between the final compressive strength of the mixture and the amount of cement (in kilograms per cubic meter). This is visualised below:
 
 ```{r, warning=FALSE, message=FALSE}
  concrete %>% ggplot(aes(cement, strength))+geom_point() +geom_smooth(method ="lm") +theme_minimal()+xlab("Cement (kg/cubic meter)")+ ylab("Strength")+ ggtitle("Relationship Between Concrete Amount and Final Compressive Strangth ")
@@ -59,13 +43,9 @@ meter). This is visualised below:
 
 ## Preparation
 
-For this analysis our outcome feature will be *strength* predicted by
-the eight features. Neural networks preform best when the input data are
-scaled to a narrow range around zero, however, in our dataset the
-features range from 0 to over 1,000.
+For this analysis our outcome feature will be *strength* predicted by the eight features. Neural networks preform best when the input data are scaled to a narrow range around zero, however, in our dataset the features range from 0 to over 1,000.
 
-In order to address this issue we need to normalise the dataset, e
-define a normalisation function as follows:
+In order to address this issue we need to normalise the dataset, e define a normalisation function as follows:
 
 ```{r}
 normalise <- function(x){
@@ -73,8 +53,7 @@ normalise <- function(x){
 }
 ```
 
-After defining our function, we need tp apply it to every column in the
-dataset, we can do so using the **lapply** function:
+After defining our function, we need tp apply it to every column in the dataset, we can do so using the **lapply** function:
 
 ```{r}
 concrete_norm <- as.data.frame(lapply(concrete, normalise))
@@ -92,117 +71,74 @@ Compare to original data:
 summary(concrete$strength)
 ```
 
-For this analysis we will partition the data into a training set with
-75% of the examples and a testing set with 25%. The dataset was already
-sorted randomly, so we only need to split the dataset according to the
-proportions:
+For this analysis we will partition the data into a training set with 75% of the examples and a testing set with 25%. The dataset was already sorted randomly, so we only need to split the dataset according to the proportions:
 
 ```{r}
 concrete_train <- concrete_norm[1:773, ]
 concrete_test <- concrete_norm[774:1030, ]
 ```
 
-The training data will be used to construct the neural network and the
-testing data to evaluate how well the model generalises to future data.
+The training data will be used to construct the neural network and the testing data to evaluate how well the model generalises to future data.
 
 # Training a model on the data
 
-A multilayer feedforward neural network, will be used to model the
-relationship between the ingredients in concrete and the strength of the
-final mixture. The **neuralnet** package was developed by Stefan Fritsch
-and Frauke Guenther, and provides an easy-to-use neural network
-implementation. We begin by constructing the simplest multilayer
-feedforward network with the default settings it uses only one hidden
-node:
+A multilayer feedforward neural network, will be used to model the relationship between the ingredients in concrete and the strength of the final mixture. The **neuralnet** package was developed by Stefan Fritsch and Frauke Guenther, and provides an easy-to-use neural network implementation. We begin by constructing the simplest multilayer feedforward network with the default settings it uses only one hidden node:
 
 ```{r, message=FALSE}
 library(neuralnet)
 set.seed(1234)
-concrete_model <- neuralnet(strength ~ cement + slag + ash +water + superplastic + coarseagg + fineagg + age,
+concrete_model1 <- neuralnet(strength ~ cement + slag + ash +water + superplastic + coarseagg + fineagg + age,
                              data=concrete_train)
 ```
 
-Lets visualise the visualize the network topology on the resulting model
-object:
+Lets visualise the visualize the network topology on the resulting model object:
 
 ```{r}
-plot(concrete_model)
+plot(concrete_model1)
 ```
 
-In this simple model, each of the eight features has one input node,
-followed by a single hidden node and a single output note, predicting
-cncrete strength. The respective weights for each connection are also
-includes, so are the *bias terms*, which indicated by the nodes labeled
-with the number 1. The bias terms are numeric constants, they allow the
-value at the indicated nodes to be shifted either upward or downward,
-you can think of them as the intercept in a linear equation.
+In this simple model, each of the eight features has one input node, followed by a single hidden node and a single output note, predicting concrete strength. The respective weights for each connection are also includes, so are the *bias terms*, which indicated by the nodes labeled with the number 1. The bias terms are numeric constants, they allow the value at the indicated nodes to be shifted either upward or downward, you can think of them as the intercept in a linear equation.
 
-The bottom of the first figure, includes the number of steps an error
-measure known as the sum of squared errors (SSE), in short it indicates
-the squared differences between the actual and predicted values. The
-ower the SSE the more the model conforms to the training data, giving us
-an indication of how it performs on the training data, but doesn't give
-us an idea of how it would perform on unseen data.
+The bottom of the first figure, includes the number of steps an error measure known as the sum of squared errors (SSE), in short it indicates the squared differences between the actual and predicted values. The ower the SSE the more the model conforms to the training data, giving us an indication of how it performs on the training data, but doesn't give us an idea of how it would perform on unseen data.
 
 # Evaluating model performance
 
-We can generate predictions on the test dataset, using the **compute**
-function:
+We can generate predictions on the test dataset, using the **compute** function:
 
 ```{r}
-model_results <- compute(concrete_model, concrete_test[1:8])
+model_results <- compute(concrete_model1, concrete_test[1:8])
 ```
 
-Compute is slightly different than **predict** in that it two list
-components are returned: `$neurons` and `$net.result`,the former stores
-the neurons of each layer and the latter the predicted values. We want
-the predicted values:
+Compute is slightly different than **predict** in that it two list components are returned: `$neurons` and `$net.result`,the former stores the neurons of each layer and the latter the predicted values. We want the predicted values:
 
 ```{r}
 predicted_strength <- model_results$net.result
 ```
 
-Given that this is not a classification problem, a confusion matrix
-cannot be used to examine model accuracy. In this instance the
-correlation between predicted concrete strength and the true value. iF
-predicted and actual values are highly correlated, we can consider the
-model useful for predicting concrete strength:
+Given that this is not a classification problem, a confusion matrix cannot be used to examine model accuracy. In this instance the correlation between predicted concrete strength and the true value. iF predicted and actual values are highly correlated, we can consider the model useful for predicting concrete strength:
 
 ```{r}
 cor(predicted_strength, concrete_test$strength)
 ```
 
-Correlations closer to one indicates a strong linear relationships
-between the variables. In this case the correlation between the actual
-and predicted values is 0.806, indicating a fairly strong relationship,
-implying that the model is doing a good job, even though it only has a
-single hidden node. Since we only used one hidden node, it is likely
-that the model performance can be improved upon.
+Correlations closer to one indicates a strong linear relationships between the variables. In this case the correlation between the actual and predicted values is 0.806, indicating a fairly strong relationship, implying that the model is doing a good job, even though it only has a single hidden node. Since we only used one hidden node, it is likely that the model performance can be improved upon.
 
 # Improving model performance:
 
-As the complexity of network topologies grow, so too does the model's
-learning capabilities. Lets see how much model performance increases if
-we use five hidden nodes instead of one:
+As the complexity of network topologies grow, so too does the model's learning capabilities. Lets see how much model performance increases if we use five hidden nodes instead of one:
 
 ```{r}
 set.seed(12345)
 concrete_model2 <- neuralnet(strength ~ cement+slag+ash+water+superplastic+coarseagg+fineagg+age,data=concrete_train,hidden=5)
 ```
 
-If we plot the network, we can see the substantial increase in the
-number of connections, but, has this improved performance?
+If we plot the network, we can see the substantial increase in the number of connections, but, has this improved performance?
 
 ```{r}
 plot(concrete_model2)
 ```
 
-For this model the reported error has been reduced to 1.63 from 5.08 in
-the previous model. In addition, the number of training steps has also
-increased, to 86,849, from 4,822. The more complex the network the more
-iterations necessary to find optimal weights. We can once again apply
-similar steps as with the previous model, to find the correlation
-between the actual and predicted values:
+For this model the reported error has been reduced to 1.63 from 5.08 in the previous model. In addition, the number of training steps has also increased, to 86,849, from 4,822. The more complex the network the more iterations necessary to find optimal weights. We can once again apply similar steps as with the previous model, to find the correlation between the actual and predicted values:
 
 ```{r}
 model_results2 <- compute(concrete_model2, concrete_test[1:8])
@@ -210,27 +146,15 @@ predicted_stregth_2 <- model_results2$net.result
 cor(predicted_stregth_2, concrete_test$strength)
 ```
 
-A correlation of around 0.92 is a substantial improvement from 0.80.
-Nevertheless, model performance can be further improved upon. For
-instance, we are able to add more hidden layers as well as altering the
-network's activation function. By doing so we are engaging with in
-simple deep neural networks.
+A correlation of around 0.92 is a substantial improvement from 0.80. Nevertheless, model performance can be further improved upon. For instance, we are able to add more hidden layers as well as altering the network's activation function. By doing so we are engaging with in simple deep neural networks.
 
-For this analysis well use a smooth approximation of the rectified
-linear unit (ReLU) as an activator function. It is known as softplus or
-SmoothREeLU, and can be defined as $log(1+e^x)$. We define the softplus
-function below:
+For this analysis well use a smooth approximation of the rectified linear unit (ReLU) as an activator function. It is known as softplus or SmoothREeLU, and can be defined as $log(1+e^x)$. We define the softplus function below:
 
 ```{r}
 softplus <- function(x) { log(1+exp(x)) }
 ```
 
-In order to provide the activation function t the model we need to
-specify it in the *act.fct* parameter. In addition we will also add
-another hidden layer of five nodes by supplying the integer vector
-*c(5,5)* to the *hidden* parameter. This creates a two layer hidden
-network, with five nodes, all of which utilise the softplus activation
-function.
+In order to provide the activation function t the model we need to specify it in the *act.fct* parameter. In addition we will also add another hidden layer of five nodes by supplying the integer vector *c(5,5)* to the *hidden* parameter. This creates a two layer hidden network, with five nodes, all of which utilise the softplus activation function.
 
 ```{r}
 set.seed(12345)
@@ -243,8 +167,7 @@ Similar to before, the network can be visualised:
 plot(concrete_model3)
 ```
 
-As with previous models, we can compute the correlation between the
-predicted and actual concrete strength:
+As with previous models, we can compute the correlation between the predicted and actual concrete strength:
 
 ```{r}
 model_results3 <- compute(concrete_model3, concrete_test[1:8])
@@ -252,12 +175,9 @@ predicted_stregth_3 <- model_results3$net.result
 cor(predicted_stregth_3, concrete_test$strength)
 ```
 
-The correlation between the predicted and actual strength for this model
-is 0.935, indicating that this is the best performing model so far.
+The correlation between the predicted and actual strength for this model is 0.935, indicating that this is the best performing model so far.
 
-Given that we normalised our data prior to modelling, the predictions
-are also normalised. Lets compare the concrete strength in our original
-dataset and the predicted values:
+Given that we normalised our data prior to modelling, the predictions are also normalised. Lets compare the concrete strength in our original dataset and the predicted values:
 
 ```{r}
 strengths <- data.frame(
@@ -267,19 +187,13 @@ strengths <- data.frame(
 head(strengths, n=10)
 ```
 
-The choice of normalised or unnormalised data does not affect our
-computed performance statistics, the correlation of 0.935 remains the
-same as before:
+The choice of normalised or unnormalised data does not affect our computed performance statistics, the correlation of 0.935 remains the same as before:
 
 ```{r}
 cor(strengths$pred, strengths$actual)
 ```
 
-Nevertheless, the choice of normalised or unnormalised data would affect
-other performance metrics, such as the absolute difference between
-predicted and actual value, in that case the selection of scale would
-affect the outcome. Taking this into account, lets create a function to
-unnormalise the predictions and convert them back to the original scale:
+Nevertheless, the choice of normalised or unnormalised data would affect other performance metrics, such as the absolute difference between predicted and actual value, in that case the selection of scale would affect the outcome. Taking this into account, lets create a function to unnormalise the predictions and convert them back to the original scale:
 
 ```{r}
 unnormalise <- function(x) {
@@ -287,8 +201,7 @@ unnormalise <- function(x) {
 }
 ```
 
-Now that our predictions are back to normal scale, lets calculate the
-absolute error value:
+Now that our predictions are back to normal scale, lets calculate the absolute error value:
 
 ```{r}
 strengths$pred_new <- unnormalise(strengths$pred)

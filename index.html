@@ -447,17 +447,17 @@
 <p>A multilayer feedforward neural network, will be used to model the relationship between the ingredients in concrete and the strength of the final mixture. The <strong>neuralnet</strong> package was developed by Stefan Fritsch and Frauke Guenther, and provides an easy-to-use neural network implementation. We begin by constructing the simplest multilayer feedforward network with the default settings it uses only one hidden node:</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(neuralnet)</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>concrete_model <span class="ot">&lt;-</span> <span class="fu">neuralnet</span>(strength <span class="sc">~</span> cement <span class="sc">+</span> slag <span class="sc">+</span> ash <span class="sc">+</span>water <span class="sc">+</span> superplastic <span class="sc">+</span> coarseagg <span class="sc">+</span> fineagg <span class="sc">+</span> age,</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>concrete_model1 <span class="ot">&lt;-</span> <span class="fu">neuralnet</span>(strength <span class="sc">~</span> cement <span class="sc">+</span> slag <span class="sc">+</span> ash <span class="sc">+</span>water <span class="sc">+</span> superplastic <span class="sc">+</span> coarseagg <span class="sc">+</span> fineagg <span class="sc">+</span> age,</span>
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>                             <span class="at">data=</span>concrete_train)</span></code></pre></div>
 <p>Lets visualise the visualize the network topology on the resulting model object:</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(concrete_model)</span></code></pre></div>
-<p>In this simple model, each of the eight features has one input node, followed by a single hidden node and a single output note, predicting cncrete strength. The respective weights for each connection are also includes, so are the <em>bias terms</em>, which indicated by the nodes labeled with the number 1. The bias terms are numeric constants, they allow the value at the indicated nodes to be shifted either upward or downward, you can think of them as the intercept in a linear equation.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(concrete_model1)</span></code></pre></div>
+<p>In this simple model, each of the eight features has one input node, followed by a single hidden node and a single output note, predicting concrete strength. The respective weights for each connection are also includes, so are the <em>bias terms</em>, which indicated by the nodes labeled with the number 1. The bias terms are numeric constants, they allow the value at the indicated nodes to be shifted either upward or downward, you can think of them as the intercept in a linear equation.</p>
 <p>The bottom of the first figure, includes the number of steps an error measure known as the sum of squared errors (SSE), in short it indicates the squared differences between the actual and predicted values. The ower the SSE the more the model conforms to the training data, giving us an indication of how it performs on the training data, but doesn’t give us an idea of how it would perform on unseen data.</p>
 </div>
 <div id="evaluating-model-performance" class="section level1">
 <h1>Evaluating model performance</h1>
 <p>We can generate predictions on the test dataset, using the <strong>compute</strong> function:</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>model_results <span class="ot">&lt;-</span> <span class="fu">compute</span>(concrete_model, concrete_test[<span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>])</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>model_results <span class="ot">&lt;-</span> <span class="fu">compute</span>(concrete_model1, concrete_test[<span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>])</span></code></pre></div>
 <p>Compute is slightly different than <strong>predict</strong> in that it two list components are returned: <code>$neurons</code> and <code>$net.result</code>,the former stores the neurons of each layer and the latter the predicted values. We want the predicted values:</p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>predicted_strength <span class="ot">&lt;-</span> model_results<span class="sc">$</span>net.result</span></code></pre></div>
 <p>Given that this is not a classification problem, a confusion matrix cannot be used to examine model accuracy. In this instance the correlation between predicted concrete strength and the true value. iF predicted and actual values are highly correlated, we can consider the model useful for predicting concrete strength:</p>
@@ -555,19 +555,7 @@
 	$('tr.header').parent('thead').parent('table').addClass('table table-condensed');
 		
  		
-		$('#content img:not(.no-lightbox)').addClass("image-lb");
-	$('#content').magnificPopup({
-	    type:'image',
-	    closeOnContentClick: false,
-	    closeBtnInside: false,
-	    delegate: '.image-lb',
-	    gallery: {enabled: false },
-	    image: {
-	        verticalFit: true,
-		titleSrc: 'alt'
-	    }
- 	});
- 	    });
+	    });
   </script>
 
 
